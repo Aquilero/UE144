@@ -1,0 +1,22 @@
+---
+- name: Update & Install Java SDK
+  hosts: slave1
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - name: Update software packages
+      apt:
+        name: "*"
+        state: latest
+      become: yes
+
+    - name: Update cache
+      apt:
+        update_cache: yes
+
+    - name: Java installieren
+      apt:
+        name: openjdk-17-jdk
+        state: present
+      become: yes
