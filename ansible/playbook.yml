@@ -1,0 +1,62 @@
+---
+- name: Add Jenkins to EC2
+  hosts: all
+  become: yes
+  become_method: sudo
+
+  tasks:
+    - name: Update software packages
+      apt:
+        name: "*"
+        state: latest
+      become: yes
+
+    - name: Add Jenkins repo
+      get_url:
+        url: https://pkg.jenkins.io/debian-stable/jenkins.io.key
+        dest: "{{ ansible_user_dir }}/jenkins.io.key"
+
+    - name: Import Jenkins key
+      ansible.builtin.apt_key:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+
+    - name: Jenkins repo holen
+      apt_repository:
+        repo: deb http://pkg.jenkins.io/debian-stable binary/
+        state: present
+
+    - name: Update software packages after adding Jenkins repo
+      apt:
+        update_cache: yes
+
+    - name: Java installieren
+      apt:
+        name: openjdk-17-jdk
+        state: present
+      become: yes
+
+    - name: Jenkins installieren
+      apt:
+        name: jenkins
+        state: present
+      become: yes
+      notify: Restart Jenkins
+
+    - name: Enable Jenkins service at boot
+      systemd:
+        name: jenkins
+        enabled: yes
+        state: started
+
+    - name: Check Jenkins service status
+      systemd:
+        name: jenkins
+        state: started
+
+  handlers:
+    - name: Restart Jenkins
+      systemd:
+        name: jenkins
+        state: restarted
+
